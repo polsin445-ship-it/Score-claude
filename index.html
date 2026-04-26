@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>โรงเรียนบ้านดู่ใหญ่ — ระบบผลการเรียน</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-error-container": "#93000a",
+        "surface": "#fff8f7",
+        "inverse-on-surface": "#f9eeef",
+        "on-secondary-fixed-variant": "#6b3741",
+        "primary-container": "#ffc0cb",
+        "secondary-fixed-dim": "#fcb3be",
+        "surface-tint": "#81515a",
+        "secondary-fixed": "#ffd9de",
+        "on-error": "#ffffff",
+        "tertiary": "#43664b",
+        "on-background": "#1f1a1b",
+        "secondary": "#874e58",
+        "inverse-surface": "#352f30",
+        "inverse-primary": "#f4b6c1",
+        "on-tertiary": "#ffffff",
+        "on-primary-container": "#7b4b55",
+        "surface-container-low": "#fcf1f1",
+        "surface-container": "#f6ebec",
+        "on-secondary-container": "#7b444e",
+        "tertiary-fixed-dim": "#a9d0af",
+        "primary": "#81515a",
+        "error-container": "#ffdad6",
+        "surface-variant": "#eae0e0",
+        "on-tertiary-container": "#3e6146",
+        "surface-dim": "#e2d8d8",
+        "on-secondary-fixed": "#360c17",
+        "secondary-container": "#ffb6c1",
+        "surface-container-highest": "#eae0e0",
+        "error": "#ba1a1a",
+        "primary-fixed": "#ffd9df",
+        "primary-fixed-dim": "#f4b6c1",
+        "on-primary": "#ffffff",
+        "tertiary-container": "#b3dab8",
+        "tertiary-fixed": "#c5ecca",
+        "on-secondary": "#ffffff",
+        "outline": "#837375",
+        "on-tertiary-fixed": "#00210c",
+        "background": "#fff8f7",
+        "outline-variant": "#d5c2c4",
+        "surface-container-high": "#f0e6e6",
+        "on-primary-fixed-variant": "#663a43",
+        "on-tertiary-fixed-variant": "#2c4e34",
+        "on-surface": "#1f1a1b",
+        "surface-container-lowest": "#ffffff",
+        "on-surface-variant": "#514345",
+        "on-primary-fixed": "#330f19",
+        "surface-bright": "#fff8f7"
+      },
+      borderRadius: {
+        "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"
+      },
+      spacing: {
+        "lg": "24px", "sm": "8px", "xl": "32px", "unit": "4px",
+        "container-padding": "20px", "xs": "4px", "md": "16px", "stack-gap": "12px"
+      },
+      fontFamily: {
+        "label-sm": ["Be Vietnam Pro"], "body-md": ["Be Vietnam Pro"],
+        "label-md": ["Be Vietnam Pro"], "body-lg": ["Be Vietnam Pro"],
+        "h1": ["Plus Jakarta Sans"], "h2": ["Plus Jakarta Sans"]
+      },
+      fontSize: {
+        "label-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.02em", fontWeight: "600" }],
+        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+        "label-md": ["14px", { lineHeight: "20px", fontWeight: "500" }],
+        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+        "h1": ["30px", { lineHeight: "38px", fontWeight: "700" }],
+        "h2": ["24px", { lineHeight: "32px", fontWeight: "600" }]
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { min-height: 100dvh; font-family: 'Be Vietnam Pro', sans-serif; background-color: #fff8f7; }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle; user-select: none;
+  }
+  .soft-shadow { box-shadow: 0 4px 20px rgba(255,192,203,0.18); }
+  .page { display: none; }
+  .page.active { display: block; }
+  /* Login page special */
+  #page-login { display: flex; min-height: 100dvh; }
+  #page-login.hidden-page { display: none; }
+
+  /* Bounce */
+  .bounce-active:active { transform: scale(0.95); }
+  .bento-card { transition: transform 0.2s ease-in-out; }
+  .bento-card:active { transform: scale(0.98); }
+
+  /* Bar chart fill animation */
+  @keyframes barFill { from { height: 0%; } to { height: var(--fill-h); } }
+  .bar-fill { animation: barFill 0.9s cubic-bezier(.22,.68,0,1.1) both; }
+
+  /* Fade in for pages */
+  @keyframes fadeSlideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+  .page.active main, .page.active section { animation: fadeSlideIn 0.3s ease both; }
+
+  /* Toggle switch */
+  .toggle-track { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
+  .toggle-track input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; border-radius: 24px; background: #e2d8d8; transition: 0.3s; }
+  .toggle-slider:before { content: ''; position: absolute; left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: white; transition: 0.3s; }
+  input:checked + .toggle-slider { background: #ffb6c1; }
+  input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  /* Toast */
+  #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; background: #81515a; color: white; padding: 10px 22px; border-radius: 24px; font-size: 14px; font-weight: 600; transition: all 0.3s; z-index: 999; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Loading spinner */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: #ffc0cb; border-radius: 4px; }
+</style>
+</head>
+
+<body class="bg-surface text-on-surface">
+
+<!-- ===== TOAST ===== -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     PAGE: LOGIN
+============================================================ -->
+<div id="page-login" class="flex items-center justify-center p-5 min-h-screen">
+  <main class="w-full max-w-[440px] flex flex-col items-center">
+    <!-- Brand Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-secondary-container rounded-[28px] mb-4 soft-shadow">
+        <span class="material-symbols-outlined text-on-secondary-container text-4xl" style="font-variation-settings:'FILL' 1;">school</span>
+      </div>
+      <h1 class="font-['Plus_Jakarta_Sans'] text-[30px] leading-[38px] font-bold text-primary tracking-tight mb-1">
+        โรงเรียนบ้านดู่ใหญ่
+        <div>ยินดีต้อนรับ</div>
+      </h1>
+      <p class="text-on-surface-variant text-[16px]">เข้าสู่ระบบเพื่อดูผลการเรียนของคุณ</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="w-full bg-white p-8 rounded-[32px] soft-shadow border border-pink-50">
+      <div class="space-y-6">
+        <!-- Username -->
+        <div class="space-y-1">
+          <label class="text-[14px] font-medium text-on-surface-variant px-1" for="login-username">ชื่อผู้ใช้</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <span class="material-symbols-outlined text-outline-variant group-focus-within:text-primary transition-colors">person</span>
+            </div>
+            <input id="login-username" type="text" placeholder="กรอกชื่อผู้ใช้ของคุณ"
+              class="w-full bg-surface-container-low border-none rounded-2xl py-4 pl-12 pr-4 text-[16px] focus:ring-2 focus:ring-primary-container focus:bg-white transition-all outline-none">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="space-y-1">
+          <label class="text-[14px] font-medium text-on-surface-variant px-1" for="login-password">รหัสผ่าน</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <span class="material-symbols-outlined text-outline-variant group-focus-within:text-primary transition-colors">lock</span>
+            </div>
+            <input id="login-password" type="password" placeholder="กรอกรหัสผ่านของคุณ"
+              class="w-full bg-surface-container-low border-none rounded-2xl py-4 pl-12 pr-12 text-[16px] focus:ring-2 focus:ring-primary-container focus:bg-white transition-all outline-none">
+            <button onclick="togglePwd()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-outline-variant hover:text-primary transition-colors" type="button">
+              <span class="material-symbols-outlined" id="eye-icon">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Error msg -->
+        <div id="login-error" class="hidden flex items-center gap-2 px-1 text-error">
+          <span class="material-symbols-outlined text-sm">error</span>
+          <span class="text-[12px] font-semibold">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</span>
+        </div>
+
+        <!-- Submit -->
+        <button onclick="handleLogin()" id="login-btn"
+          class="w-full bg-primary-container text-on-primary-container font-semibold text-[18px] py-4 rounded-2xl soft-shadow hover:brightness-105 transition-all bounce-active mt-2">
+          เข้าสู่ระบบ
+        </button>
+      </div>
+
+      <div class="mt-6 pt-6 border-t border-surface-container text-center">
+        <a href="#" class="text-[14px] font-medium text-primary hover:underline underline-offset-4">ลืมรหัสผ่านใช่หรือไม่?</a>
+      </div>
+    </div>
+
+    <!-- Secondary actions -->
+    <div class="mt-8 text-center">
+      <p class="text-on-surface-variant text-[16px]">ยังไม่มีบัญชี? <a href="#" class="text-[14px] font-semibold text-primary hover:underline">ติดต่อ</a>ครูพลสินธุ์</p>
+    </div>
+
+    <!-- Decorative -->
+    <div class="mt-8 opacity-20 grayscale pointer-events-none">
+      <span class="material-symbols-outlined text-6xl text-primary" style="font-variation-settings:'FILL' 1;">menu_book</span>
+    </div>
+  </main>
+
+  <!-- bg blobs -->
+  <div class="fixed top-[-10%] right-[-10%] w-96 h-96 bg-primary-container/20 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
+  <div class="fixed bottom-[-5%] left-[-5%] w-64 h-64 bg-secondary-container/30 rounded-full blur-[80px] -z-10 pointer-events-none"></div>
+</div>
+
+<!-- ============================================================
+     SHARED: TOP APP BAR (shown on all pages except login)
+============================================================ -->
+<header id="top-bar" class="hidden fixed top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-pink-50 shadow-sm shadow-pink-200/10 flex justify-between items-center px-6 py-4">
+  <div class="flex items-center gap-4">
+    <button onclick="toggleMenu()" class="text-pink-400 hover:bg-pink-50/50 p-2 rounded-full transition-all active:scale-95">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+    <h1 id="top-title" class="font-['Plus_Jakarta_Sans'] text-xl font-extrabold text-pink-500 tracking-tight">ผลการเรียน</h1>
+  </div>
+  <div class="h-10 w-10 rounded-full border-2 border-primary-container overflow-hidden bg-primary-container/30 flex items-center justify-center">
+    <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">person</span>
+  </div>
+</header>
+
+<!-- ============================================================
+     PAGE: HOME (หน้าหลัก)
+============================================================ -->
+<div id="page-home" class="page hidden">
+  <main class="pt-24 px-5 max-w-[1140px] mx-auto pb-36">
+    <!-- Welcome Hero -->
+    <section class="mb-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <p class="text-[14px] font-medium text-primary mb-1">ยินดีต้อนรับกลับมา</p>
+          <h2 class="font-['Plus_Jakarta_Sans'] text-[30px] font-bold text-on-surface">สวัสดี, <span id="home-name">ชลดา</span></h2>
+        </div>
+        <div class="bg-primary-container/20 px-6 py-2 rounded-xl flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">auto_awesome</span>
+          <span class="text-[14px] font-medium text-on-primary-container">เทอมนี้คุณทำได้เยี่ยมมาก!</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <!-- GPA Card -->
+      <div class="md:col-span-4 bg-white rounded-[32px] p-8 soft-shadow border border-pink-50 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"></div>
+        <p class="text-[14px] font-medium text-secondary mb-4">เกรดเฉลี่ยรวม (GPAX)</p>
+        <div class="w-32 h-32 rounded-full border-[8px] border-primary-container flex items-center justify-center mb-4 relative">
+          <span id="home-gpax" class="font-['Plus_Jakarta_Sans'] text-[40px] text-primary">3.85</span>
+          <div class="absolute inset-0 rounded-full border-[8px] border-primary border-t-transparent -rotate-45"></div>
+        </div>
+        <div class="bg-tertiary-container/30 px-4 py-1 rounded-full">
+          <span class="text-[12px] font-semibold text-on-tertiary-container">+0.15 จากเทอมที่แล้ว</span>
+        </div>
+      </div>
+
+      <!-- Chart Card -->
+      <div class="md:col-span-8 bg-white rounded-[32px] p-8 soft-shadow border border-pink-50">
+        <div class="flex justify-between items-center mb-8">
+          <h3 class="font-['Plus_Jakarta_Sans'] text-[24px] font-semibold text-on-surface">สรุปคะแนนรายวิชา</h3>
+          <div class="flex gap-2 items-center">
+            <span class="w-3 h-3 rounded-full bg-primary inline-block"></span>
+            <span class="text-[12px] font-semibold text-outline">คะแนนปัจจุบัน</span>
+          </div>
+        </div>
+        <div id="home-chart" class="flex items-end justify-between h-48 gap-4 px-4">
+          <!-- bars generated by JS -->
+        </div>
+      </div>
+
+      <!-- Subject List -->
+      <div class="md:col-span-12">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-['Plus_Jakarta_Sans'] text-[24px] font-semibold text-on-surface">วิชาที่ลงทะเบียน</h3>
+          <button onclick="goToGrades()" class="text-primary text-[14px] font-medium flex items-center gap-1 hover:underline">
+            ดูทั้งหมด <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+        <div id="subject-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- Notification Banner -->
+      <div class="md:col-span-12 mt-4">
+        <div class="bg-secondary-container/10 border border-secondary-container/30 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6">
+          <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center text-primary shadow-sm">
+            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">notifications_active</span>
+          </div>
+          <div class="text-center md:text-left flex-1">
+            <h4 class="text-[14px] font-bold text-on-secondary-container">อัปเดตล่าสุด</h4>
+            <p id="home-notif" class="text-[16px] text-on-secondary-container/80">กำลังโหลดข้อมูล...</p>
+          </div>
+          <button onclick="navTo('grades')" class="bg-primary text-white px-8 py-4 rounded-2xl text-[14px] font-medium hover:brightness-110 active:scale-95 transition-all">
+            ดูรายละเอียด
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     PAGE: GRADES (คะแนน)
+============================================================ -->
+<div id="page-grades" class="page hidden">
+  <main class="pt-24 px-5 max-w-[1140px] mx-auto pb-36">
+    <section class="mb-6">
+      <h2 class="font-['Plus_Jakarta_Sans'] text-[30px] font-bold text-on-surface">คะแนนรายวิชา</h2>
+      <p class="text-on-surface-variant text-[16px]">ผลการเรียนทุกรายวิชาของคุณ</p>
+    </section>
+
+    <!-- Summary row -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="bg-white rounded-3xl p-5 soft-shadow border border-pink-50 text-center">
+        <p class="text-[12px] font-semibold text-outline mb-1">GPAX</p>
+        <p id="grades-gpax" class="font-['Plus_Jakarta_Sans'] text-[28px] font-bold text-primary">3.85</p>
+      </div>
+      <div class="bg-white rounded-3xl p-5 soft-shadow border border-pink-50 text-center">
+        <p class="text-[12px] font-semibold text-outline mb-1">วิชาทั้งหมด</p>
+        <p id="grades-total" class="font-['Plus_Jakarta_Sans'] text-[28px] font-bold text-primary">6</p>
+      </div>
+      <div class="bg-white rounded-3xl p-5 soft-shadow border border-pink-50 text-center">
+        <p class="text-[12px] font-semibold text-outline mb-1">เกรด A</p>
+        <p id="grades-a-count" class="font-['Plus_Jakarta_Sans'] text-[28px] font-bold text-primary">3</p>
+      </div>
+    </div>
+
+    <!-- Full subject table -->
+    <div class="bg-white rounded-[32px] soft-shadow border border-pink-50 overflow-hidden">
+      <div class="px-6 py-4 border-b border-pink-50 flex justify-between items-center">
+        <h3 class="font-['Plus_Jakarta_Sans'] text-[18px] font-semibold">รายวิชาทั้งหมด</h3>
+        <button onclick="openSaveModal()" class="bg-primary text-white px-4 py-2 rounded-xl text-[14px] font-medium flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-sm">save</span>บันทึก Google Sheets
+        </button>
+      </div>
+      <div id="grades-table" class="divide-y divide-pink-50">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     PAGE: PROFILE (ข้อมูลส่วนตัว)
+============================================================ -->
+<div id="page-profile" class="page hidden">
+  <main class="pt-24 px-5 max-w-[1140px] mx-auto pb-36">
+    <!-- Profile Hero -->
+    <div class="flex flex-col items-center mb-10">
+      <div class="relative mb-4">
+        <div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-primary-container to-secondary-container soft-shadow">
+          <div class="w-full h-full rounded-full border-4 border-white bg-primary-container/30 flex items-center justify-center">
+            <span class="material-symbols-outlined text-5xl text-primary" style="font-variation-settings:'FILL' 1;">person</span>
+          </div>
+        </div>
+        <button class="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-lg border border-pink-100 text-pink-500 active:scale-90 transition-transform">
+          <span class="material-symbols-outlined text-[18px]">edit</span>
+        </button>
+      </div>
+      <h2 id="profile-name" class="font-['Plus_Jakarta_Sans'] text-[24px] font-semibold text-on-background mb-1">นภัสสร รัตนจินดา</h2>
+      <p id="profile-id" class="text-[14px] font-medium text-secondary">เลขประจำตัว: 54321</p>
+    </div>
+
+    <!-- Bento Grid -->
+    <div class="grid grid-cols-4 md:grid-cols-12 gap-3">
+      <!-- Main Info -->
+      <div class="col-span-4 md:col-span-8 bg-white rounded-[24px] p-6 soft-shadow border border-pink-50">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-[14px] font-medium text-primary uppercase tracking-wider">ข้อมูลพื้นฐาน</h3>
+          <button class="text-pink-400 text-[12px] font-semibold hover:underline">แก้ไขข้อมูล</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex flex-col gap-1">
+            <span class="text-slate-400 text-[12px]">ชื่อ-นามสกุล</span>
+            <span id="pinfo-name" class="text-[16px] font-medium text-on-surface">นภัสสร รัตนจินดา</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-slate-400 text-[12px]">รหัสนักเรียน</span>
+            <span id="pinfo-sid" class="text-[16px] font-medium text-on-surface">543210987</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-slate-400 text-[12px]">ห้อง/ชั้นเรียน</span>
+            <span id="pinfo-class" class="text-[16px] font-medium text-on-surface">มัธยมศึกษาปีที่ 6/2</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-slate-400 text-[12px]">อาจารย์ที่ปรึกษา</span>
+            <span id="pinfo-teacher" class="text-[16px] font-medium text-on-surface">อ.วิไลวรรณ มีสุข</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- GPA Bento -->
+      <div class="col-span-4 md:col-span-4 bg-primary-container/20 rounded-[24px] p-6 flex flex-col justify-between border border-primary-container/30">
+        <div>
+          <span class="material-symbols-outlined text-pink-500 mb-2">auto_awesome</span>
+          <h3 class="text-[14px] font-medium text-on-primary-container">เกรดเฉลี่ยสะสม</h3>
+        </div>
+        <div class="mt-4">
+          <span id="profile-gpax" class="text-[48px] font-bold text-pink-600 leading-none">3.85</span>
+          <div class="mt-2">
+            <span class="bg-white/60 px-2 py-0.5 rounded-full text-[12px] text-pink-700 font-bold">+0.12 จากเทอมที่แล้ว</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="col-span-4 md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+        <button class="bento-card bg-white p-4 rounded-3xl border border-pink-50 soft-shadow flex flex-col items-center gap-2 text-center group">
+          <div class="w-12 h-12 rounded-2xl bg-pink-50 flex items-center justify-center text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-colors">
+            <span class="material-symbols-outlined">description</span>
+          </div>
+          <span class="text-[12px] font-semibold text-slate-600">ใบรับรองผล</span>
+        </button>
+        <button class="bento-card bg-white p-4 rounded-3xl border border-pink-50 soft-shadow flex flex-col items-center gap-2 text-center group">
+          <div class="w-12 h-12 rounded-2xl bg-pink-50 flex items-center justify-center text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-colors">
+            <span class="material-symbols-outlined">calendar_month</span>
+          </div>
+          <span class="text-[12px] font-semibold text-slate-600">ตารางเรียน</span>
+        </button>
+        <button class="bento-card bg-white p-4 rounded-3xl border border-pink-50 soft-shadow flex flex-col items-center gap-2 text-center group">
+          <div class="w-12 h-12 rounded-2xl bg-pink-50 flex items-center justify-center text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-colors">
+            <span class="material-symbols-outlined">star</span>
+          </div>
+          <span class="text-[12px] font-semibold text-slate-600">ความสำเร็จ</span>
+        </button>
+        <button class="bento-card bg-white p-4 rounded-3xl border border-pink-50 soft-shadow flex flex-col items-center gap-2 text-center group">
+          <div class="w-12 h-12 rounded-2xl bg-pink-50 flex items-center justify-center text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-colors">
+            <span class="material-symbols-outlined">mail</span>
+          </div>
+          <span class="text-[12px] font-semibold text-slate-600">แจ้งเตือน</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Logout -->
+    <div class="mt-12 mb-8 flex justify-center">
+      <button onclick="handleLogout()" class="flex items-center gap-2 px-8 py-3 rounded-full border border-pink-100 text-pink-400 text-[14px] font-medium hover:bg-pink-50 transition-colors active:scale-95">
+        <span class="material-symbols-outlined">logout</span> ออกจากระบบ
+      </button>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     PAGE: SETTINGS (ตั้งค่า)
+============================================================ -->
+<div id="page-settings" class="page hidden">
+  <main class="pt-24 px-5 max-w-lg mx-auto pb-36">
+    <!-- Illustration -->
+    <div class="flex justify-center mb-8">
+      <div class="relative w-40 h-40 flex items-center justify-center">
+        <div class="absolute inset-0 bg-primary-container/20 rounded-full blur-3xl"></div>
+        <span class="material-symbols-outlined text-primary text-[80px] relative z-10" style="font-variation-settings:'FILL' 1;">manage_accounts</span>
+      </div>
+    </div>
+
+    <!-- Google Sheets Config -->
+    <div class="space-y-3 mb-6">
+      <h2 class="text-[14px] font-medium text-primary ml-4 mb-2">🔗 เชื่อมต่อ Google Sheets</h2>
+      <div class="bg-white rounded-[24px] p-4 border border-pink-50 soft-shadow">
+        <p class="text-[12px] font-semibold text-outline mb-3">Google Apps Script Web App URL</p>
+        <input id="sheet-url" type="url" placeholder="https://script.google.com/macros/s/.../exec"
+          class="w-full bg-surface-container-low rounded-2xl py-3 px-4 text-[14px] outline-none focus:ring-2 focus:ring-primary-container border-none transition-all"
+          value="">
+        <p class="text-[11px] text-outline mt-2">วาง URL ของ Google Apps Script Web App ที่นี่ (ดูวิธีตั้งค่าได้ในคู่มือ)</p>
+        <button onclick="saveSheetUrl()" class="mt-3 w-full bg-primary text-white py-3 rounded-2xl text-[14px] font-semibold hover:brightness-110 active:scale-95 transition-all">
+          บันทึก URL
+        </button>
+      </div>
+
+      <!-- How to guide -->
+      <div class="bg-tertiary-container/20 rounded-[24px] p-4 border border-tertiary-container/30">
+        <h4 class="text-[13px] font-bold text-on-tertiary-container mb-2">📋 วิธีตั้งค่า Google Sheets</h4>
+        <ol class="text-[12px] text-on-tertiary-container/80 space-y-1 list-decimal list-inside">
+          <li>สร้าง Google Sheet ใหม่และตั้งชื่อ "ผลการเรียน"</li>
+          <li>ไปที่ Extensions → Apps Script</li>
+          <li>วาง code จาก Apps Script ด้านล่าง แล้วกด Deploy → New Deployment</li>
+          <li>เลือก Execute as: Me และ Who has access: Anyone</li>
+          <li>คัดลอก Web App URL แล้ววางในช่องด้านบน</li>
+        </ol>
+        <button onclick="toggleAppsScript()" class="mt-3 text-[12px] text-tertiary font-semibold hover:underline">
+          แสดง Apps Script Code →
+        </button>
+        <pre id="apps-script-code" class="hidden mt-3 bg-white rounded-xl p-3 text-[11px] text-on-surface overflow-auto whitespace-pre-wrap border border-tertiary-container/20">function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName("ผลการเรียน") || 
+    SpreadsheetApp.getActiveSpreadsheet().insertSheet("ผลการเรียน");
+  
+  // Add headers if empty
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["วันที่", "รหัสนักเรียน", "ชื่อ", "รายวิชา", "รหัสวิชา", "เกรด"]);
+  }
+  
+  // Append each subject row
+  const rows = data.subjects.map(s => [
+    new Date().toLocaleString("th-TH"),
+    data.studentId,
+    data.studentName,
+    s.name,
+    s.code,
+    s.grade
+  ]);
+  rows.forEach(r => sheet.appendRow(r));
+  
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "ok", rows: rows.length }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "ready" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+      </div>
+    </div>
+
+    <!-- Account Settings -->
+    <div class="space-y-3">
+      <h2 class="text-[14px] font-medium text-primary ml-4 mb-2">บัญชีและความปลอดภัย</h2>
+      <div class="bg-white rounded-[24px] p-4 border border-pink-50 soft-shadow active:scale-[0.98] transition-all cursor-pointer group">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-primary-container/30 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">lock_open</span>
+            </div>
+            <div>
+              <p class="text-[14px] font-medium text-on-surface">เปลี่ยนรหัสผ่าน</p>
+              <p class="text-[12px] text-outline">อัปเดตรหัสผ่านของคุณสม่ำเสมอ</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">chevron_right</span>
+        </div>
+      </div>
+
+      <h2 class="text-[14px] font-medium text-primary ml-4 mt-6 mb-2">การแจ้งเตือน</h2>
+      <div class="bg-white rounded-[24px] p-4 border border-pink-50 soft-shadow">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-secondary-container/30 flex items-center justify-center">
+              <span class="material-symbols-outlined text-secondary">notifications</span>
+            </div>
+            <div>
+              <p class="text-[14px] font-medium text-on-surface">เปิด/ปิดการแจ้งเตือน</p>
+              <p class="text-[12px] text-outline">รับข่าวสารเมื่อประกาศผลสอบ</p>
+            </div>
+          </div>
+          <label class="toggle-track">
+            <input type="checkbox" checked id="notif-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <h2 class="text-[14px] font-medium text-primary ml-4 mt-6 mb-2">อื่น ๆ</h2>
+      <div class="bg-white rounded-[24px] p-4 border border-pink-50 soft-shadow active:scale-[0.98] transition-all cursor-pointer">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-tertiary-container/30 flex items-center justify-center">
+              <span class="material-symbols-outlined text-tertiary">language</span>
+            </div>
+            <div>
+              <p class="text-[14px] font-medium text-on-surface">ภาษา (Language)</p>
+              <p class="text-[12px] text-outline">ภาษาไทย</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+        </div>
+      </div>
+
+      <button onclick="handleLogout()" class="w-full mt-6 py-4 px-6 rounded-full bg-white border-2 border-pink-100 text-pink-500 text-[14px] font-medium flex items-center justify-center gap-2 hover:bg-pink-50 active:scale-95 transition-all mb-12">
+        <span class="material-symbols-outlined">logout</span> ออกจากระบบ
+      </button>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     BOTTOM NAV BAR (shown on all non-login pages)
+============================================================ -->
+<nav id="bottom-nav" class="hidden fixed bottom-0 left-0 w-full z-50 bg-white/95 backdrop-blur-lg flex justify-around items-center px-4 pt-3 pb-8 shadow-[0_-4px_20px_rgba(255,192,203,0.15)] rounded-t-[32px]">
+  <button onclick="navTo('home')" id="nav-home" class="flex flex-col items-center justify-center px-5 py-1.5 rounded-2xl transition-all active:scale-90 duration-300">
+    <span class="material-symbols-outlined nav-icon" id="icon-home">home</span>
+    <span class="font-['Plus_Jakarta_Sans'] text-[12px]">หน้าหลัก</span>
+  </button>
+  <button onclick="navTo('grades')" id="nav-grades" class="flex flex-col items-center justify-center px-5 py-1.5 rounded-2xl transition-all active:scale-90 duration-300">
+    <span class="material-symbols-outlined nav-icon" id="icon-grades">grade</span>
+    <span class="font-['Plus_Jakarta_Sans'] text-[12px]">คะแนน</span>
+  </button>
+  <button onclick="navTo('profile')" id="nav-profile" class="flex flex-col items-center justify-center px-5 py-1.5 rounded-2xl transition-all active:scale-90 duration-300">
+    <span class="material-symbols-outlined nav-icon" id="icon-profile">person</span>
+    <span class="font-['Plus_Jakarta_Sans'] text-[12px]">ข้อมูลส่วนตัว</span>
+  </button>
+  <button onclick="navTo('settings')" id="nav-settings" class="flex flex-col items-center justify-center px-5 py-1.5 rounded-2xl transition-all active:scale-90 duration-300">
+    <span class="material-symbols-outlined nav-icon" id="icon-settings">settings</span>
+    <span class="font-['Plus_Jakarta_Sans'] text-[12px]">ตั้งค่า</span>
+  </button>
+</nav>
+
+<!-- ============================================================
+     MODAL: SAVE TO GOOGLE SHEETS
+============================================================ -->
+<div id="save-modal" class="hidden fixed inset-0 z-[100] flex items-end md:items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeSaveModal()"></div>
+  <div class="relative bg-white rounded-t-[32px] md:rounded-[32px] p-6 w-full max-w-sm md:mx-4 soft-shadow z-10">
+    <h3 class="font-['Plus_Jakarta_Sans'] text-[20px] font-semibold text-on-surface mb-2">บันทึกไปยัง Google Sheets</h3>
+    <p class="text-[14px] text-on-surface-variant mb-4">ข้อมูลคะแนนและเกรดทั้งหมดจะถูกบันทึกลงใน Google Sheets ที่คุณตั้งค่าไว้</p>
+
+    <div id="modal-sheet-url-warning" class="hidden bg-error-container text-on-error-container rounded-2xl p-3 text-[12px] font-semibold mb-4">
+      ⚠️ ยังไม่ได้ตั้งค่า Google Apps Script URL กรุณาไปที่ หน้าตั้งค่า → เชื่อมต่อ Google Sheets
+    </div>
+
+    <div class="bg-surface-container-low rounded-2xl p-4 mb-4">
+      <p class="text-[12px] text-outline mb-1">ข้อมูลที่จะบันทึก</p>
+      <ul class="text-[13px] text-on-surface space-y-1">
+        <li>• ชื่อ-นามสกุล และรหัสนักเรียน</li>
+        <li id="modal-subjects-count">• วิชาทั้งหมด (6 รายวิชา)</li>
+        <li>• เกรดและรหัสวิชาทุกรายการ</li>
+        <li>• วันที่และเวลาบันทึก</li>
+      </ul>
+    </div>
+
+    <div class="flex gap-3">
+      <button onclick="closeSaveModal()" class="flex-1 py-3 rounded-2xl border border-pink-100 text-pink-400 text-[14px] font-medium hover:bg-pink-50 transition-all active:scale-95">
+        ยกเลิก
+      </button>
+      <button onclick="saveToGoogleSheets()" id="confirm-save-btn" class="flex-1 py-3 rounded-2xl bg-primary text-white text-[14px] font-semibold hover:brightness-110 transition-all active:scale-95">
+        บันทึกเลย
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+// ─── Demo Data ─────────────────────────────────────────────────────────────
+const DEMO_USERS = {
+  "student": { password: "1234", name: "ชลดา สุขใจ", studentId: "543210987", class: "ม.6/2 (วิทย์-คณิต)", teacher: "อ.วิไลวรรณ มีสุข", gpax: "3.85" },
+  "admin":   { password: "admin", name: "นภัสสร รัตนจินดา", studentId: "654321098", class: "ม.5/1 (ศิลป์-คำนวณ)", teacher: "อ.ประเสริฐ ดีงาม", gpax: "3.72" }
+};
+
+const DEMO_SUBJECTS = [
+  { name: "คณิตศาสตร์เพิ่มเติม", code: "ค32101", icon: "functions",  grade: "4",   score: 92, percent: 90 },
+  { name: "ฟิสิกส์พื้นฐาน",       code: "ว32201", icon: "science",    grade: "3.5", score: 85, percent: 75 },
+  { name: "ภาษาอังกฤษ",           code: "อ32101", icon: "language",   grade: "4",   score: 95, percent: 95 },
+  { name: "ภาษาไทย",              code: "ท32101", icon: "book",       grade: "4",   score: 90, percent: 88 },
+  { name: "สังคมศึกษา",            code: "ส32101", icon: "public",     grade: "3",   score: 78, percent: 80 },
+  { name: "วิทยาศาสตร์",          code: "ว32301", icon: "biotech",    grade: "3.5", score: 82, percent: 75 },
+];
+
+// ─── State ──────────────────────────────────────────────────────────────────
+let currentUser = null;
+let currentPage = null;
+
+// ─── Utilities ──────────────────────────────────────────────────────────────
+function showToast(msg, duration = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function togglePwd() {
+  const inp = document.getElementById('login-password');
+  const ico = document.getElementById('eye-icon');
+  if (inp.type === 'password') { inp.type = 'text'; ico.textContent = 'visibility_off'; }
+  else { inp.type = 'password'; ico.textContent = 'visibility'; }
+}
+
+function toggleAppsScript() {
+  const el = document.getElementById('apps-script-code');
+  el.classList.toggle('hidden');
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+function handleLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value.trim();
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+
+  if (!DEMO_USERS[u] || DEMO_USERS[u].password !== p) {
+    errEl.classList.remove('hidden');
+    errEl.style.display = 'flex';
+    return;
+  }
+  errEl.classList.add('hidden');
+  errEl.style.display = 'none';
+
+  btn.innerHTML = '<span class="spinner"></span>กำลังเข้าสู่ระบบ...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    currentUser = DEMO_USERS[u];
+    btn.innerHTML = 'เข้าสู่ระบบ';
+    btn.disabled = false;
+    populateUserData();
+    showAppUI();
+    navTo('home');
+    showToast('🎉 เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ ' + currentUser.name);
+  }, 900);
+}
+
+function handleLogout() {
+  currentUser = null;
+  hideAppUI();
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+// Listen for Enter key on login form
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+// ─── UI show/hide ─────────────────────────────────────────────────────────────
+function showAppUI() {
+  document.getElementById('page-login').classList.add('hidden-page');
+  document.getElementById('top-bar').classList.remove('hidden');
+  document.getElementById('top-bar').style.display = 'flex';
+  document.getElementById('bottom-nav').classList.remove('hidden');
+  document.getElementById('bottom-nav').style.display = 'flex';
+}
+
+function hideAppUI() {
+  document.getElementById('page-login').classList.remove('hidden-page');
+  document.getElementById('top-bar').classList.add('hidden');
+  document.getElementById('top-bar').style.display = 'none';
+  document.getElementById('bottom-nav').classList.add('hidden');
+  document.getElementById('bottom-nav').style.display = 'none';
+  // hide all pages
+  ['home','grades','profile','settings'].forEach(p => {
+    const el = document.getElementById('page-' + p);
+    el.classList.remove('active');
+    el.classList.add('hidden');
+  });
+  currentPage = null;
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+const PAGE_TITLES = { home: 'ผลการเรียน', grades: 'คะแนน', profile: 'ข้อมูลส่วนตัว', settings: 'การตั้งค่า' };
+const NAV_ICONS = { home: 'home', grades: 'grade', profile: 'person', settings: 'settings' };
+
+function navTo(page) {
+  if (currentPage) {
+    const prev = document.getElementById('page-' + currentPage);
+    prev.classList.remove('active');
+    prev.classList.add('hidden');
+    // reset nav
+    const nb = document.getElementById('nav-' + currentPage);
+    if (nb) {
+      nb.classList.remove('bg-pink-100/50', 'text-pink-600');
+      nb.classList.add('text-slate-400');
+      const ic = document.getElementById('icon-' + currentPage);
+      if (ic) ic.style.fontVariationSettings = "'FILL' 0";
+      nb.querySelector('span.font-\\[\\\'Plus_Jakarta_Sans\\\'\\]')?.classList.remove('font-bold');
+    }
+  }
+  currentPage = page;
+  const el = document.getElementById('page-' + page);
+  el.classList.remove('hidden');
+  el.classList.add('active');
+
+  // active nav button
+  const nb = document.getElementById('nav-' + page);
+  if (nb) {
+    nb.classList.add('bg-pink-100/50', 'text-pink-600');
+    nb.classList.remove('text-slate-400');
+    const ic = document.getElementById('icon-' + page);
+    if (ic) ic.style.fontVariationSettings = "'FILL' 1";
+  }
+
+  document.getElementById('top-title').textContent = PAGE_TITLES[page];
+
+  // Render page-specific content
+  if (page === 'home') renderHome();
+  if (page === 'grades') renderGrades();
+  if (page === 'settings') loadSheetUrl();
+
+  window.scrollTo(0, 0);
+}
+
+function goToGrades() { navTo('grades'); }
+function toggleMenu() { showToast('เมนูนำทาง (coming soon)'); }
+
+// ─── Populate User Data ──────────────────────────────────────────────────────
+function populateUserData() {
+  if (!currentUser) return;
+  // Profile page
+  document.getElementById('profile-name').textContent = currentUser.name;
+  document.getElementById('profile-id').textContent = 'เลขประจำตัว: ' + currentUser.studentId;
+  document.getElementById('pinfo-name').textContent = currentUser.name;
+  document.getElementById('pinfo-sid').textContent = currentUser.studentId;
+  document.getElementById('pinfo-class').textContent = currentUser.class;
+  document.getElementById('pinfo-teacher').textContent = currentUser.teacher;
+  document.getElementById('profile-gpax').textContent = currentUser.gpax;
+  // Home
+  document.getElementById('home-name').textContent = currentUser.name.split(' ')[0];
+  document.getElementById('home-gpax').textContent = currentUser.gpax;
+  document.getElementById('grades-gpax').textContent = currentUser.gpax;
+}
+
+// ─── Render Home ─────────────────────────────────────────────────────────────
+function renderHome() {
+  // Chart
+  const chart = document.getElementById('home-chart');
+  chart.innerHTML = '';
+  DEMO_SUBJECTS.slice(0, 5).forEach((s, i) => {
+    const pct = s.percent;
+    const div = document.createElement('div');
+    div.className = 'flex flex-col items-center gap-2 flex-1';
+    div.innerHTML = `
+      <div class="w-full bg-primary-container/30 rounded-t-xl relative group" style="height:85%">
+        <div class="bar-fill absolute bottom-0 w-full bg-gradient-to-t from-secondary-container to-primary-container rounded-t-xl hover:brightness-105 transition-all"
+          style="--fill-h:${pct}%; height:${pct}%; animation-delay:${i*0.1}s"></div>
+      </div>
+      <span class="text-[12px] font-semibold text-outline">${s.name.length > 3 ? s.name.slice(0,3) : s.name}</span>
+    `;
+    chart.appendChild(div);
+  });
+
+  // Subject list
+  const list = document.getElementById('subject-list');
+  list.innerHTML = '';
+  DEMO_SUBJECTS.slice(0, 3).forEach(s => {
+    list.innerHTML += `
+      <div class="bg-white rounded-3xl p-4 soft-shadow border border-pink-50 flex items-center gap-4 group hover:-translate-y-1 transition-all">
+        <div class="w-14 h-14 rounded-2xl bg-primary-container/20 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined">${s.icon}</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="text-[18px] font-semibold text-on-surface">${s.name}</h4>
+          <p class="text-[12px] font-semibold text-outline">${s.code}</p>
+        </div>
+        <div class="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center font-['Plus_Jakarta_Sans'] text-[18px] font-semibold">${s.grade}</div>
+      </div>`;
+  });
+
+  // Notification
+  const last = DEMO_SUBJECTS[DEMO_SUBJECTS.length - 1];
+  document.getElementById('home-notif').textContent = `อาจารย์บันทึกคะแนนวิชา${last.name}ของคุณแล้ว (${last.score} คะแนน)`;
+}
+
+// ─── Render Grades ────────────────────────────────────────────────────────────
+function renderGrades() {
+  const aCount = DEMO_SUBJECTS.filter(s => s.grade === '4').length;
+  document.getElementById('grades-total').textContent = DEMO_SUBJECTS.length;
+  document.getElementById('grades-a-count').textContent = aCount;
+
+  const table = document.getElementById('grades-table');
+  table.innerHTML = '';
+  DEMO_SUBJECTS.forEach((s, i) => {
+    const gradeColor = s.grade == '4' ? 'bg-tertiary-container/40 text-on-tertiary-container' :
+                       s.grade == '3.5' ? 'bg-primary-container/40 text-on-primary-container' :
+                       'bg-secondary-container/40 text-on-secondary-container';
+    table.innerHTML += `
+      <div class="flex items-center gap-4 px-6 py-4 hover:bg-surface-container-low transition-colors">
+        <div class="w-10 h-10 rounded-2xl bg-primary-container/20 flex items-center justify-center text-primary flex-shrink-0">
+          <span class="material-symbols-outlined text-[18px]">${s.icon}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h4 class="text-[15px] font-semibold text-on-surface truncate">${s.name}</h4>
+          <p class="text-[12px] text-outline">${s.code}</p>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          <span class="text-[13px] font-medium text-outline">${s.score} คะแนน</span>
+          <div class="w-24 h-1.5 bg-surface-container rounded-full overflow-hidden">
+            <div class="h-full bg-primary-container rounded-full" style="width:${s.percent}%"></div>
+          </div>
+        </div>
+        <div class="w-12 h-12 rounded-full ${gradeColor} flex items-center justify-center font-['Plus_Jakarta_Sans'] text-[16px] font-bold ml-2">${s.grade}</div>
+      </div>`;
+  });
+}
+
+// ─── Google Sheets ────────────────────────────────────────────────────────────
+function saveSheetUrl() {
+  const url = document.getElementById('sheet-url').value.trim();
+  if (!url) { showToast('⚠️ กรุณากรอก URL ก่อน'); return; }
+  if (!url.startsWith('https://script.google.com')) { showToast('❌ URL ไม่ถูกต้อง'); return; }
+  localStorage.setItem('sheets_url', url);
+  showToast('✅ บันทึก URL เรียบร้อยแล้ว');
+}
+
+function loadSheetUrl() {
+  const saved = localStorage.getItem('sheets_url') || '';
+  document.getElementById('sheet-url').value = saved;
+}
+
+function openSaveModal() {
+  const url = localStorage.getItem('sheets_url');
+  const warn = document.getElementById('modal-sheet-url-warning');
+  if (!url) {
+    warn.classList.remove('hidden');
+    warn.style.display = 'flex';
+  } else {
+    warn.classList.add('hidden');
+    warn.style.display = 'none';
+  }
+  document.getElementById('modal-subjects-count').textContent = `• วิชาทั้งหมด (${DEMO_SUBJECTS.length} รายวิชา)`;
+  document.getElementById('save-modal').classList.remove('hidden');
+  document.getElementById('save-modal').style.display = 'flex';
+}
+
+function closeSaveModal() {
+  document.getElementById('save-modal').classList.add('hidden');
+  document.getElementById('save-modal').style.display = 'none';
+}
+
+async function saveToGoogleSheets() {
+  const url = localStorage.getItem('sheets_url');
+  if (!url) {
+    showToast('⚠️ กรุณาตั้งค่า URL ก่อน');
+    closeSaveModal();
+    navTo('settings');
+    return;
+  }
+
+  const btn = document.getElementById('confirm-save-btn');
+  btn.innerHTML = '<span class="spinner"></span>กำลังบันทึก...';
+  btn.disabled = true;
+
+  const payload = {
+    studentId: currentUser.studentId,
+    studentName: currentUser.name,
+    subjects: DEMO_SUBJECTS.map(s => ({ name: s.name, code: s.code, grade: s.grade, score: s.score }))
+  };
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      mode: 'no-cors'  // Apps Script requires no-cors
+    });
+
+    // With no-cors we can't read response, but if no error thrown = success
+    closeSaveModal();
+    showToast('✅ บันทึกข้อมูลไปยัง Google Sheets เรียบร้อยแล้ว!', 3500);
+  } catch (err) {
+    closeSaveModal();
+    showToast('❌ เกิดข้อผิดพลาด: ' + err.message);
+    console.error(err);
+  } finally {
+    btn.innerHTML = 'บันทึกเลย';
+    btn.disabled = false;
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+// Apply nav button styles properly
+document.querySelectorAll('#bottom-nav button').forEach(btn => {
+  btn.classList.add('text-slate-400');
+});
+
+// Keyboard shortcut for demo: press Enter on login page
+window.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !currentUser) handleLogin();
+});
+
+// Init: show login
+hideAppUI();
+document.getElementById('page-login').classList.remove('hidden-page');
+</script>
+</body>
+</html>
